@@ -15,7 +15,3 @@
 #   TEST_REPORT_NOTIFY_BOT: 7389308034:AAFtpQWTS7Cd0jzaH9MhECgJkivBfEIkIQM
 #   BUILD_PIPELINE_BOT: 6741428147:AAHPRcB0-7hlTHaGySeM4z73YVXSirJ8EGg
   
-# tokens:
-#   pipeline_telegram_bot: $123123123
-#   jenkins_gitlab_access_token: $123123123
-#   jenkins-gitlab-access-webhook: $123123123

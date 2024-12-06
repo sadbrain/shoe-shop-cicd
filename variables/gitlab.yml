@@ -1,0 +1,21 @@
+# GITLAB_WEB:
+#   ADDRESS_STA_FRONTEND: http://staenv.mixcredevops.vip
+#   ARTIFACT_PASS: Vj7TNavuQu2OFYcPP1sY
+#   ARTIFACT_SCAN_REPORT_URL: http://jfrog.mixcredevops.vip:8082/artifactory/onlineshop/scanreports
+#   ARTIFACT_URL: http://jfrog.mixcredevops.vip/artifactory/onlineshop/
+#   ARTIFACT_USER: onlineshop
+#   BE_DOCKER_PORT: 5214:80
+#   FE_DOCKER_PORT: 80:80
+#   CI_REGISTRY: harbor.mixcredevops.vip
+#   CI_REGISTRY_PASS: eC45BXzwWdtYeBmus2wi
+#   CI_REGISTRY_USER: onlineshop
+#   SNYK_AUTH_TOKEN: ca7b7fe5-91db-4aeb-9465-b41e8132b31b
+#   FRONTEND_PROJECT_ID: 1
+#   BACKEND_PROJECT_ID: 2
+#   TEST_REPORT_NOTIFY_BOT: 7389308034:AAFtpQWTS7Cd0jzaH9MhECgJkivBfEIkIQM
+#   BUILD_PIPELINE_BOT: 6741428147:AAHPRcB0-7hlTHaGySeM4z73YVXSirJ8EGg
+  
+# tokens:
+#   pipeline_telegram_bot: $123123123
+#   jenkins_gitlab_access_token: $123123123
+#   jenkins-gitlab-access-webhook: $123123123

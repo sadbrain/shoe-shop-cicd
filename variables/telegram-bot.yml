@@ -1,5 +1,5 @@
-test_report_notify_os_mixcre_bot:
-  token: 7389308034:AAFtpQWTS7Cd0jzaH9MhECgJkivBfEIkIQM
-build_pipeline_os_mixcre_bot:  
-  token: 6741428147:AAHPRcB0-7hlTHaGySeM4z73YVXSirJ8EGg
-chat_id: 1761136883
+# test_report_notify_os_mixcre_bot:
+#   token: 7389308034:AAFtpQWTS7Cd0jzaH9MhECgJkivBfEIkIQM
+# build_pipeline_os_mixcre_bot:  
+#   token: 6741428147:AAHPRcB0-7hlTHaGySeM4z73YVXSirJ8EGg
+# chat_id: $132123

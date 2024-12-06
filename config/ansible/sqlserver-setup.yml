@@ -1,0 +1,8 @@
+- name: Install jenkins on server
+  hosts:
+    - web_servers
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - docker-installer
+    - sqlserver-installer

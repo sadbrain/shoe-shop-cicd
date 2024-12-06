@@ -1,0 +1,8 @@
+---
+nginx_conf_path: /etc/nginx/conf.d/default.conf
+nginx_default_listener_path: /etc/nginx/sites-available/default
+listen_port: 80
+servers:
+  - name: server
+    address: localhost
+    port: 80

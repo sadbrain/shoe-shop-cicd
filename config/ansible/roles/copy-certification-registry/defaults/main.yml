@@ -1,0 +1,2 @@
+source_file_path: /home/ansible/projects/onlineshop/certs/myServer.cer
+dest_folder_path: /etc/docker/certs.d/harbor.mixcredevops.vip

@@ -1,0 +1,4 @@
+- name: Reload Nginx
+  service:
+    name: docker
+    state: reloaded

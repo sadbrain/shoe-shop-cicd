@@ -1,0 +1,9 @@
+- name: Install jenkins on server
+  hosts:
+    - jenkins-server
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - nginx-installer
+    - jenkins-installer
+    - jenkins-nginx-installer

@@ -1,0 +1,8 @@
+runner_type: "project"
+gitlab_url: "http://gitlab.mixcredevops.vip/"
+gitlab_registration_token: "GR1348941YE77fE5Zyr8mUGi_3p26"
+group_name: "online-shop"
+project_name: "online-shop-frontend"
+hostname: "{{ ansible_hostname }}"
+executor: "shell"
+concurrent_jobs: 4

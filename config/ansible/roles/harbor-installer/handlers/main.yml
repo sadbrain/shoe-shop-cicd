@@ -1,0 +1,19 @@
+- name: Run prepare script
+  command: "bash ./prepare"
+  args:
+    chdir: "{{ wkdr_path }}"
+
+- name: Run install script
+  command: "bash ./install.sh"
+  args:
+    chdir: "{{ wkdr_path }}"
+
+- name: Move and clean up harbor files
+  block:
+    - name: Move all files from /tools/harbor/harbor to /tools/harbor
+      command: "{{'mv' + wkdr_path + '/harbor/*' + wkdr_path }}"
+    
+    - name: Remove /tools/harbor/harbor directory
+      file:
+        path: "{{ wkdr_path + '/harbor' }}"
+        state: absent

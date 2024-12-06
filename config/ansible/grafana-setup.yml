@@ -1,0 +1,14 @@
+- name: Install jfrog on server
+  hosts:
+    - grafana-server  
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - nginx-installer
+    - grafana-installer
+    - role: nginx-reverse-proxy
+      vars:
+        servers:
+          - name: grafana-server 
+            address: grafana.mixcredevops.vip
+            port: 3000

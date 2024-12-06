@@ -1,0 +1,10 @@
+- name: Install jenkins on server
+  hosts:
+    - cloudbear-server
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - docker-installer
+    - cloudbear-installer
+    - nginx-installer
+    - cloudbear-nginx-installer

@@ -1,0 +1,2 @@
+file_installer: docker-compose.yml
+wkdr_path: /opt/sqlserver

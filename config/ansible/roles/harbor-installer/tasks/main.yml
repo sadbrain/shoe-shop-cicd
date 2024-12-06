@@ -1,0 +1,64 @@
+- name: Create harbor directory
+  file:
+    path: "{{ wkdr_path }}"
+    state: directory
+    mode: '0750'
+
+- name: Check if harbor.yml exists
+  stat:
+    path: "{{ wkdr_path + '/' + file_configuration }}" 
+  register: harbor_yml
+
+- name: Download Harbor offline installer
+  shell: |
+    curl -s https://api.github.com/repos/goharbor/harbor/releases/latest | 
+    grep browser_download_url | 
+    cut -d '"' -f 4 | 
+    grep '.tgz$' | 
+    grep 'offline' | 
+    wget -i -
+  args:
+    chdir: "{{ wkdr_path }}"
+  when: not harbor_yml.stat.exists
+
+- name: Extract Harbor
+  command: "tar xvzf harbor-offline-installer*.tgz"
+  args:
+    chdir: "{{ wkdr_path }}"
+  when: not harbor_yml.stat.exists
+  notify: Move and clean up harbor files
+
+- name: Copy harbor.yml if it doesn't exist
+  copy:
+    src: "{{ wkdr_path + '/harbor.yml.tmpl'}}"
+    dest: "{{ wkdr_path + '/' + file_configuration }}"  
+    force: no
+  when: not harbor_yml.stat.exists
+
+- name: Modify harbor.yml for hostname
+  lineinfile:
+    path: "{{ wkdr_path + '/' + file_configuration }}" 
+    regexp: '^hostname:'
+    line: "{{ 'hostname: ' + hostname }}"
+
+- name: Update SSL certificate path
+  lineinfile:
+    path: "{{ wkdr_path + '/' + file_configuration }}"
+    regexp: '^certificate:'
+    line: "{{'certificate: ' + certificate_path }}"
+
+- name: Update private key path
+  lineinfile:
+    path: "{{ wkdr_path + '/' + file_configuration }}"
+    regexp: '^private_key:'
+    line: "{{'private_key: ' + privatekey_path }}"
+
+- name: Run prepare script
+  command: "bash ./prepare"
+  args:
+    chdir: "{{ wkdr_path }}"
+
+- name: Run install script
+  command: "bash ./install.sh"
+  args:
+    chdir: "{{ wkdr_path }}"

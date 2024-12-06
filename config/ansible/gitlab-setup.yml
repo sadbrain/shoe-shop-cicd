@@ -1,0 +1,7 @@
+- name: Install Gitlab Runner on all servers
+  hosts:
+    - gitlab-server
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - gitlab-installer

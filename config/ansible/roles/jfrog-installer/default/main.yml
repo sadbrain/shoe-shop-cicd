@@ -1,0 +1,13 @@
+file_installer: docker-compose.yml
+wkdr_path: /tools/jfrog
+image_version: 7.77.5
+image: releases-docker.jfrog.io/jfrog/artifactory-oss
+containers_ports:
+  - 8081:8081
+  - 8082:8082
+container_name: artifactory-jfrog
+volumes:
+   - /tools/jfrog/data/:/var/opt/jfrog/artifactory
+service_name: artifactory-jfrog
+restart: unless-stopped
+docker_volumes: []

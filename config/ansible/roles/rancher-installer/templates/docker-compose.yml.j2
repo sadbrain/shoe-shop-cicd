@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  {{ service_name | default('artifactory-jfrog') }}:
+    image: {{ image }}:{{ image_version | default('latest') }}
+    {% if container_name is defined and container_name %}container_name: {{ container_name }}
+    {% endif %}
+restart: {{ restart | default('unless-stopped') }}
+    privileged: true
+    volumes:
+{% for v in volumes %}
+      - {{ v }}
+{% endfor %}
+{% for v in docker_volumes %}
+      - {{ v }}
+{% endfor %}
+    ports:
+{% for p in containers_ports %}
+      - "{{ p }}"
+{% endfor %}
+{% if docker_volumes is defined and docker_volumes | length > 0 %}
+volumes:
+  {% for v in docker_volumes %}
+  {{ v.split(':')[0] }}:
+       driver: local
+  {% endfor %}
+{% endif %}

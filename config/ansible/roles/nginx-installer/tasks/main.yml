@@ -1,0 +1,32 @@
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow SSH Connection
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+
+- name: Allow HTTP Traffic
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+
+- name: Allow HTTPS Traffic
+  ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+
+- name: Reload UFW
+  command: ufw reload
+  when: ansible_ufw.status == 'active'

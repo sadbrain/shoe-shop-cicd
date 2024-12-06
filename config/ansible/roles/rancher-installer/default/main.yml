@@ -1,0 +1,13 @@
+file_installer: docker-compose.yml
+wkdr_path: /tools/rancher
+image_version: v2.8.4
+image: rancher/rancher
+containers_ports:
+  - 80:80
+  - 433:433
+container_name: rancher
+volumes:
+   - /tools/rancher/data/:/var/lib/rancher
+service_name: rancher
+restart: unless-stopped
+docker_volumes: []

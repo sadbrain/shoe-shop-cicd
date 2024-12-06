@@ -1,0 +1,15 @@
+- name: Install jfrog on server
+  hosts:
+    - jfrog-server 
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - docker-installer
+    - jfrog-installer
+    - nginx-installer
+    - role: nginx-reverse-proxy
+      vars:
+        servers:
+          - name: jfrog-server
+            address: jfrog.mixcredevops.vip
+            port: 8082

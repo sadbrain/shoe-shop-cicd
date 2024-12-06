@@ -1,0 +1,54 @@
+- name: Set runner name and description based on runner type
+  set_fact:
+    runner_name: >-
+      {% if runner_type == 'instance' %}
+        shared-runner-{{ hostname }}-{{ executor }}
+      {% elif runner_type == 'group' %}
+        {{ group_name }}-runner-{{ hostname }}-{{ executor }}
+      {% elif runner_type == 'project' %}
+        {{ project_name }}-runner-{{ hostname }}-{{ executor }}
+      {% endif %}
+
+- name: Trim runner name
+  set_fact:
+    runner_name: "{{ runner_name | trim }}"
+    runner_description: "{{ runner_name | trim }}"
+    
+- name: Read GitLab Runner configuration
+  slurp:
+    src: /etc/gitlab-runner/config.toml
+  register: gitlab_runner_config
+
+- name: Debug GitLab Runner config content
+  set_fact:
+    runner_names: "{{
+        (gitlab_runner_config['content'] | b64decode).splitlines() |
+        select('search', 'name = ') | map('regex_replace', '.*name = \"(.*)\"', '\\1' ) | list
+      }}"
+
+- name: Check if runner already exists in config
+  set_fact:
+    runner_exists: >-
+      {{
+        runner_name in runner_names
+      }}
+
+- name: Register GitLab Runner
+  command: >
+    gitlab-runner register
+    --non-interactive
+    --url "{{ gitlab_url }}"
+    --registration-token "{{ gitlab_registration_token }}"
+    --name "{{ runner_description }}"
+    --tag-list "{{ runner_name }}"
+    --run-untagged="false" 
+    --executor "{{ executor }}"
+  when: not runner_exists
+
+- name: Ensure the GitLab Runner configuration allows 4 concurrent jobs
+  lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^concurrent ='
+    line: 'concurrent = 4'
+    mode: '0644'
+  notify: Restart GitLab Runner

@@ -1,0 +1,4 @@
+- name: Restart Sqlserver
+  command: docker-compose restart
+  args:
+    chdir: "{{ wkdr_path }}"

@@ -1,0 +1,191 @@
+variables:
+  USER_PROJECT: onlineshop
+  IMAGE_VERSION:  ${CI_REGISTRY}/${USER_PROJECT}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+  ZIP_VERSION: ${CI_PROJECT_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_TAG}.zip
+  CODECLIMATE_REPORT: "codeclimate_analysis_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  SNYKSCAN_REPORT: "snyk_scan_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  TRIVY_IMAGE_REPORT: "security_scan_image_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  TRIVYFS_REPORT: "trivyfs_scan_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  ARACHNI_WEBSITE_REPORT: "security_scan_website_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  K6_PERFORMACE_TEST_REPORT: "performace_test_${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}_report"
+  FOLDER_SCAN_REPORT: "${CI_PROJECT_NAME}/${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}"
+
+stages:
+  - build
+  - push
+  - test source code
+  - security scan image
+  - deploy
+  - security scan website
+  - performace testing
+  - send to telegram
+
+build image:
+  stage: build
+  script:
+    - docker build -t ${IMAGE_VERSION} .
+  tags:
+    - online-shop-runner-build-server-shell
+  only:
+    - tags
+
+
+push image:
+  stage: push
+  variables:
+    GIT_STRATEGY: none
+  before_script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASS} ${CI_REGISTRY}
+  script:
+    - docker push ${IMAGE_VERSION}
+  after_script:
+    - docker rmi -f $IMAGE_VERSION
+    - docker logout ${CI_REGISTRY}
+  tags:
+    - online-shop-runner-build-server-shell
+  only:
+    - tags
+
+
+codeclimate analyze:
+  stage: test source code
+  script:
+    - docker run --rm --env CODECLIMATE_CODE="$PWD" -v "$PWD":/code -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/cc:/tmp/cc codeclimate/codeclimate analyze -f html > $CODECLIMATE_REPORT.html
+    - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $CODECLIMATE_REPORT.html "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${CODECLIMATE_REPORT}.html"
+  tags:
+      - online-shop-runner-dev-server-shell
+  only:
+      - tags
+
+snyk scan:
+  stage: test source code
+  script:
+    - docker build --rm --network host --build-arg SNYK_AUTH_TOKEN=$SNYK_AUTH_TOKEN --build-arg OUTPUT_FILENAME=$SNYKSCAN_REPORT -t $SNYKSCAN_REPORT -f Dockerfile-snyk .
+    - docker create --name $SNYKSCAN_REPORT $SNYKSCAN_REPORT
+    - docker cp $SNYKSCAN_REPORT:/app/$SNYKSCAN_REPORT.html .
+    - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $SNYKSCAN_REPORT.html "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${SNYKSCAN_REPORT}.html"
+  after_script:
+    - docker rm -f $SNYKSCAN_REPORT
+    - docker rmi $SNYKSCAN_REPORT
+    - sudo chown -R gitlab-runner $(pwd)
+  tags:
+    - online-shop-runner-dev-server-shell
+  only:
+      - tags
+
+trivyfs scan:
+  stage: test source code
+  script:
+      - docker run --rm -v $PWD:/${CI_PROJECT_NAME} -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy fs /${CI_PROJECT_NAME} --severity HIGH,CRITICAL --format template --template "@contrib/html.tpl" --output /${CI_PROJECT_NAME}/$TRIVYFS_REPORT.html
+      - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $TRIVYFS_REPORT.html "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${TRIVYFS_REPORT}.html"
+  tags:
+      - online-shop-runner-dev-server-shell
+  only:
+      - tags
+
+
+trivy scan image:
+  stage: security scan image
+  variables:
+      GIT_STRATEGY: none
+  before_script:
+      - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASS $CI_REGISTRY
+  script:
+      - docker pull $IMAGE_VERSION 
+      - docker run --rm -v $PWD:/${CI_PROJECT_NAME} -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --format template --template "@contrib/html.tpl" --output /${CI_PROJECT_NAME}/$TRIVY_IMAGE_REPORT.html $IMAGE_VERSION
+      - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $TRIVY_IMAGE_REPORT.html "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${TRIVY_IMAGE_REPORT}.html"
+  after_script:
+      - docker logout $CI_REGISTRY
+  tags:
+      - online-shop-runner-dev-server-shell
+  only:
+      - tags
+
+
+deploy dev env:
+  stage: deploy
+  variables:
+      GIT_STRATEGY: none
+  before_script:
+      - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASS $CI_REGISTRY
+  script:
+      - docker pull $IMAGE_VERSION 
+      - sudo su $USER_PROJECT -c "docker rm -f $CI_PROJECT_NAME; docker run --name $CI_PROJECT_NAME -dp $FE_DOCKER_PORT $IMAGE_VERSION"
+  after_script:
+      - docker logout $CI_REGISTRY
+  tags:
+      - online-shop-runner-dev-server-shell
+  only:
+      - tags
+
+deploy sta env:
+  stage: deploy
+  variables:
+      GIT_STRATEGY: none
+  before_script:
+      - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASS $CI_REGISTRY
+  script:
+      - docker pull $IMAGE_VERSION 
+      - sudo su $USER_PROJECT -c "docker rm -f $CI_PROJECT_NAME; docker run --name $CI_PROJECT_NAME -dp $FE_DOCKER_PORT $IMAGE_VERSION"
+  after_script:
+      - docker logout $CI_REGISTRY
+  tags:
+      - online-shop-runner-sta-server-shell
+  only:
+      - tags
+
+security scan website:
+  stage: security scan website
+  variables:
+      GIT_STRATEGY: none
+  script:
+      - docker run --rm -v /tmp/:/tmp/ devopseduvn/arachni:v1.4-0.5.10 bin/  --output-verbose --scope-include-subdomains ${ADDRESS_STA_FRONTEND} --report-save-path=/tmp/${ARACHNI_WEBSITE_REPORT}.afr > /dev/null 2>&1
+      - docker run --rm -v /tmp/:/tmp/ devopseduvn/arachni:v1.4-0.5.10 bin/arachni_reporter /tmp/${ARACHNI_WEBSITE_REPORT}.afr --reporter=html:outfile=/tmp/${ARACHNI_WEBSITE_REPORT}.html.zip
+      - sudo chmod 777 /tmp/${ARACHNI_WEBSITE_REPORT}.html.zip
+      - cp /tmp/${ARACHNI_WEBSITE_REPORT}.html.zip .
+      - sudo rm -rf /tmp/${ARACHNI_WEBSITE_REPORT}.html.zip
+      - sudo rm -rf /tmp/${ARACHNI_WEBSITE_REPORT}.afr
+      - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $ARACHNI_WEBSITE_REPORT.html.zip "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${ARACHNI_WEBSITE_REPORT}.html.zip"
+  after_script:
+      - sudo chown -R gitlab-runner $(pwd)
+  tags:
+      - online-shop-runner-sta-server-shell
+  only:   
+      - tags
+  
+performace testing:
+    stage: performace testing
+    script:
+        - chmod -R 777 ./performance_testing_script/
+        - docker run --rm -v $(pwd)/performance_testing_script:/performance_testing_script loadimpact/k6 run -e RESULTS_PATH=/performance_testing_script --summary-export=/performance_testing_script/summary_perf.json /performance_testing_script/smoke-test.js
+        - cat ./performance_testing_script/summary_perf.json | jq -r '["metric", "avg", "min", "med", "max", "p(90)", "p(95)"], (.metrics | to_entries[] | [.key, .value.avg, .value.min, .value.med, .value.max, .value["p(90)"], .value["p(95)"]]) | @csv' > $K6_PERFORMACE_TEST_REPORT.csv
+        - curl -X PUT -u $ARTIFACT_USER:$ARTIFACT_PASS -T $K6_PERFORMACE_TEST_REPORT.csv "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/${K6_PERFORMACE_TEST_REPORT}.csv"
+    after_script:
+        - sudo chown -R gitlab-runner $(pwd)
+    tags:
+      - online-shop-runner-sta-server-shell
+    only:
+        - tags
+
+send testing report to telegram:
+    stage: send to telegram
+    script:
+        - wget --user=$ARTIFACT_USER --password=$ARTIFACT_PASS -r -np -nH --cut-dirs=4 "${ARTIFACT_SCAN_REPORT_URL}/${FOLDER_SCAN_REPORT}/" || true
+        - zip -r ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}.zip ${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}
+        - |
+          pipeline_info=$(cat <<EOF
+          ===Pipeline info===
+          Project name: $CI_PROJECT_NAME
+          Pipeline url: $CI_PIPELINE_URL
+          Branch: $CI_COMMIT_REF_NAME
+          Commit: $CI_COMMIT_SHA
+          EOF
+          )
+        - message="$pipeline_info"$'\n\n'"Test results will be sent below!!"
+        - curl -X POST "https://api.telegram.org/bot$TEST_REPORT_NOTIFY_BOT/sendMessage" -d "chat_id=$CHAT_ID&text=$message"
+        - curl -X POST "https://api.telegram.org/bot$TEST_REPORT_NOTIFY_BOT/sendDocument" -F "chat_id=${CHAT_ID}" -F "document=@$(pwd)/${CI_COMMIT_REF_NAME}_${CI_COMMIT_SHORT_SHA}.zip"
+        - curl -X POST "https://api.telegram.org/bot$TEST_REPORT_NOTIFY_BOT/sendMessage" -d "chat_id=$CHAT_ID&text=Done!!"
+    tags:
+      - online-shop-runner-build-server-shell
+    only:
+        - tags

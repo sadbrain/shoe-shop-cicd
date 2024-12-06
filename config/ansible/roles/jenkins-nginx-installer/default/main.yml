@@ -1,0 +1,7 @@
+---
+nginx_conf_path: /etc/nginx/conf.d/jenkins.conf
+listen_port: 80
+server:
+  name: jenkins-server
+  address: 192.168.204.101
+  port: 8080

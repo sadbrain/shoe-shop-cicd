@@ -1,0 +1,48 @@
+- name: Create Working directory
+  file:
+    path: "{{ wkdr_path }}"
+    state: directory
+    mode: '0750'
+
+- name: Create Data Directory
+  file:
+    path: "{{ wkdr_path + '/data'  }}"
+    state: directory
+    mode: '750'
+
+- name: Deploy docker-compose.yml
+  template: 
+    src: docker-compose.yml.j2
+    dest: "{{ wkdr_path + '/' + file_installer }}"
+    
+- name: Start service using Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: "{{ wkdr_path }}"
+  
+- name: Change owner of JFrog data dicrectory
+  file:
+      path: "{{ wkdr_path }}"
+      state: directory
+      owner: 1030
+      group: 1030
+      mode: '0750'
+      recurse: yes
+  notify: Restart Serveice Docker
+  
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow 8081/tcp
+  ufw:
+    rule: allow
+    port: 8081
+    proto: tcp 
+
+- name: Allow 8082/tcp
+  ufw:
+    rule: allow
+    port: 8082
+    proto: tcp 

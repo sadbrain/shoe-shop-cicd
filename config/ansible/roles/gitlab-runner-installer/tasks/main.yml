@@ -1,0 +1,26 @@
+- name: update package list
+  apt:
+    update_cache: yes
+
+- name: Add GitLab Runner GPG key
+  apt_key:
+    url: https://packages.gitlab.com/gpg.key
+    state: present
+
+- name: Add GitLab Runner repository
+  apt_repository:
+    repo: "deb https://packages.gitlab.com/runner/gitlab-runner/ubuntu/ focal main"  # Thay 'focal' bằng phiên bản Ubuntu của bạn
+    state: present
+    update_cache: yes
+
+- name: Install Gitlab Runner
+  apt:
+    name: gitlab-runner
+    state: present
+
+- name: Allow gitlab-runner to run commands without password
+  lineinfile:
+    path: /etc/sudoers
+    line: "gitlab-runner ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    validate: 'visudo -cf %s'

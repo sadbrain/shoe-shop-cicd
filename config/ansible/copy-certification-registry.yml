@@ -1,0 +1,8 @@
+- name: Copy Certification Registry
+  hosts:
+    - web_servers
+    - build-server 
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - copy-certification-registry

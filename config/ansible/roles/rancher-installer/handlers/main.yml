@@ -1,0 +1,4 @@
+- name: Restart Serveice Docker
+  command: docker-compose restart
+  args:
+    chdir: "{{ wkdr_path }}"

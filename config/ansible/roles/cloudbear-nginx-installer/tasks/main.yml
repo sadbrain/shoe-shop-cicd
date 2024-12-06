@@ -1,0 +1,17 @@
+- name: Configure install jenkins
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_conf_path  }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Update Nginx to listen on port 9999
+  lineinfile:
+    path: "{{ nginx_default_listener_path }}"
+    regexp: '^\s*listen\s+(80|[::]:80)\s+default_server;'
+    line: '    listen 9999 default_server;'
+    state: present
+    backup: yes
+  notify: Reload nginx
+  

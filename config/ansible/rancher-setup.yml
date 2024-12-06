@@ -1,0 +1,8 @@
+- name: Install rancher on server
+  hosts:
+    - rancher-server 
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - docker-installer
+    - rancher-installer

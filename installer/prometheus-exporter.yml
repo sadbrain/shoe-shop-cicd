@@ -1,0 +1,15 @@
+# my global config
+global:
+  scrape_interval: 15s 
+  evaluation_interval: 15s 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+
+rule_files:
+
+scrape_configs:
+  - job_name: "admin-server"
+    static_configs:
+      - targets: ["admin.mixcredevops.vip:9090"]

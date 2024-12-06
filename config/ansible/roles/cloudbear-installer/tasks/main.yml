@@ -1,0 +1,26 @@
+- name: Create Cloudbear directory
+  file:
+    path: /opt/cloudbeaver
+    state: directory
+    mode: '0755'
+
+- name: Deploy docker-compose.yml
+  template: 
+    src: docker-compose.yml.j2
+    dest: /opt/cloudbeaver/docker-compose.yml  
+    
+- name: Start CloudBeaver using Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /opt/cloudbeaver
+  
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow 8978/tcp
+  ufw:
+    rule: allow
+    port: 8978
+    proto: tcp 

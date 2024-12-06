@@ -1,0 +1,7 @@
+- name: Install jenkins on server
+  hosts:
+    - gitlab-runner-register-servers
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - gitlab-runner-register

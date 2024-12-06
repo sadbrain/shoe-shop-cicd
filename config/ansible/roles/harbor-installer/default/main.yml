@@ -1,0 +1,5 @@
+wkdr_path: /tools/harbor
+file_configuration: harbor.yml
+hostname: harbor.mixcredevops.vip
+certificate_path: /tools/harbor/certs/myServer.cer
+privatekey_path: /tools/harbor/certs/myServer.pvk

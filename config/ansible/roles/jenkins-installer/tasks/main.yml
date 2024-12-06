@@ -1,0 +1,42 @@
+- name: Install required packages
+  apt: 
+    name: "{{ item }}"
+    state: present
+  loop:
+    - openjdk-11-jdk
+    - apt-transport-https
+    - gnupg-agent
+
+- name: Add Jenkins GPG key
+  apt_key:
+    url: https://pkg.jenkins.io/debian/jenkins.io.key
+    state: present
+
+- name: Add Jenkins APT repository
+  apt_repository:
+    repo: "deb http://pkg.jenkins.io/debian-stable binary/"
+    state: present
+    update_cache: yes
+
+- name: Install Jenkins
+  apt:
+    name: jenkins
+    state: present
+
+- name: Start Jenkins service
+  systemd:
+    name: jenkins
+    state: started
+    enabled: true
+  notify: Restart Jenkins
+  
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow 8080/tcp
+  ufw:
+    rule: allow
+    port: 8080
+    proto: tcp

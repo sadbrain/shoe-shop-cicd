@@ -1,0 +1,30 @@
+# gitlab-installer/tasks/main.yml
+- name: update package list
+  apt:
+    update_cache: yes
+    
+- name: Add GitLab GPG key
+  apt_key:
+    url: "https://packages.gitlab.com/gpg.key"
+    state: present
+
+- name: Add GitLab repository
+  apt_repository:
+    repo: "deb https://packages.gitlab.com/gitlab/gitlab-ee/ubuntu/ focal main"
+    state: present
+    update_cache: yes
+
+- name: Install GitLab
+  apt:
+    name: gitlab-ee
+    state: present
+
+- name: Configure GitLab
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: '^external_url'
+    line: "external_url '{{ external_url }}'"
+
+- name: Reconfigure GitLab
+  command: gitlab-ctl reconfigure
+  notify: Restart GitLab

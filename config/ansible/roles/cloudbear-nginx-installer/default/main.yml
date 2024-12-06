@@ -1,0 +1,8 @@
+---
+nginx_conf_path: /etc/nginx/conf.d/cloudbear.conf
+nginx_default_listener_path: /etc/nginx/sites-available/default
+listen_port: 80
+server:
+  name: cloudbear-server
+  address: 192.168.204.104
+  port: 8978

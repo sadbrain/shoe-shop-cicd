@@ -1,0 +1,7 @@
+- name: Install harbor on server
+  hosts:
+    - harbor-server 
+  become: true
+  ignore_unreachable: yes
+  roles:
+    - harbor-installer

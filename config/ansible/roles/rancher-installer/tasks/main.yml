@@ -1,0 +1,44 @@
+- name: Create Working directory
+  file:
+    path: "{{ wkdr_path }}"
+    state: directory
+    mode: '0750'
+
+- name: Create Data Directory
+  file:
+    path: "{{ wkdr_path + '/data'  }}"
+    state: directory
+    mode: '750'
+
+- name: Deploy docker-compose.yml
+  template: 
+    src: docker-compose.yml.j2
+    dest: "{{ wkdr_path + '/' + file_installer }}"
+    
+- name: Start service using Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: "{{ wkdr_path }}"
+  
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Allow 22/tcp
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp 
+
+- name: Allow 80/tcp
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp 
+
+- name: Allow 433/tcp
+  ufw:
+    rule: allow
+    port: 433
+    proto: tcp 

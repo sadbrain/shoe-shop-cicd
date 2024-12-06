@@ -1,0 +1,3 @@
+# gitlab-installer/defaults/main.yml
+external_url: "http://gitlab.mixcredevops.vip"
+gitlab_version: "14.9.1-ee.0"
